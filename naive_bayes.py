@@ -6,9 +6,13 @@ from sklearn.model_selection import KFold
 import os
 from sklearn.metrics import accuracy_score
 import pandas as pd
+import sys
 
+#file_path = '/Users/esteban/data/autopsy/data.csv'
 
-file_path = '/Users/esteban/data/autopsy/data.csv'
+print(sys.argv[1])
+
+file_path = sys.argv[1]
 
 data = pd.read_csv(file_path,
                           header=None, encoding='ISO-8859-1',

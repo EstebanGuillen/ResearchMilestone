@@ -3,7 +3,7 @@ from tensorflow.keras.datasets import imdb
 from tensorflow.keras.preprocessing import sequence
 from tensorflow.python.keras.layers import Input, RNN,LSTM, Bidirectional, Dense, Embedding, Dropout, SpatialDropout1D, GRU
 from keras import optimizers
-
+import sys
 import pandas as pd
 import re
 from keras.preprocessing.text import Tokenizer
@@ -15,7 +15,9 @@ from keras.utils.np_utils import to_categorical
 from sklearn.model_selection import KFold
 import os
 
-file_path = '/Users/esteban/data/autopsy/data.csv'
+#file_path = '/Users/esteban/data/autopsy/data.csv'
+file_path = sys.argv[1]
+
 data = pd.read_csv(file_path,
                           header=None, encoding='ISO-8859-1',
                           names=['label', 'text'])
