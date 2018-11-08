@@ -1,5 +1,4 @@
 import tensorflow as tf
-from tensorflow.keras.datasets import imdb
 from tensorflow.keras.preprocessing import sequence
 from tensorflow.python.keras.layers import Input, LSTM, Bidirectional, Dense, Embedding, Dropout, SpatialDropout1D, GRU
 from keras import optimizers
@@ -61,7 +60,9 @@ def make_model(batch_size=None):
 
 history_list = []
 
-kfold_splits = 10
+eval_history_list = []
+
+kfold_splits = 5
 kf = KFold(n_splits=kfold_splits, shuffle=True)
 
 for index, (train_indices, val_indices) in enumerate(kf.split(X)):
@@ -70,9 +71,9 @@ for index, (train_indices, val_indices) in enumerate(kf.split(X)):
   
   tf.keras.backend.clear_session()
   training_model = None
-  training_model = make_model(batch_size = batch_size)
-
-
+  #training_model = make_model(batch_size = batch_size)
+  training_model = make_model()
+  
   
   history = training_model.fit(xtrain, ytrain,
                     epochs=epochs,
@@ -83,16 +84,14 @@ for index, (train_indices, val_indices) in enumerate(kf.split(X)):
 
   accuracy_history = history.history['acc']
   val_accuracy_history = history.history['val_acc']
-  print('*****************************************************************************')
-  print('*****************************************************************************')
-  print('*****************************************************************************')
   print ("Last training accuracy: " + str(accuracy_history[-1]) + ", last validation accuracy: " + str(val_accuracy_history[-1]) )
-  print('*****************************************************************************')
-  print('*****************************************************************************')
-  print('*****************************************************************************')
   
-  #eval_history = tpu_model.evaluate(xval, yval, batch_size=batch_size * num_tpu)
+  eval_history = training_model.evaluate(xval, yval, batch_size=batch_size)
+  eval_history_list.append(eval_history[1])
 
+  print ("Evaluate:")
+  print(eval_history)
+ 
 sum = 0.0
 for h in history_list:
   val_accuracy_history = h.history['val_acc']
@@ -100,10 +99,6 @@ for h in history_list:
   sum = sum + final_val_accuracy
 
 print('')
-print('*****************************************************************************')
-print('*****************************************************************************')
-print('*****************************************************************************')
-print("average accuracy:", (sum/10.0))
-print('*****************************************************************************')
-print('*****************************************************************************')
-print('*****************************************************************************')
+print(eval_history_list)
+print('')
+print("average accuracy:", (sum/(kfold_splits)))

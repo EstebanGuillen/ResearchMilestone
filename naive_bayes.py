@@ -29,7 +29,7 @@ Y = data['label_code'].values
 print(Y)
 print(data['label'].values)
 
-kfold_splits = 10
+kfold_splits = 5
 kf = KFold(n_splits=kfold_splits, shuffle=True)
 
 history = []
@@ -57,4 +57,4 @@ print(history)
 sum = 0.0
 for acc in history:
   sum = sum + acc
-print ('average accuracy:', (sum/10))
+print ('average accuracy:', (sum/(kfold_splits)))
