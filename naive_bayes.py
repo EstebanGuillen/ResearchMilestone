@@ -2,17 +2,19 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn import metrics
 
+from sklearn.model_selection import StratifiedKFold
+
 from sklearn.model_selection import KFold
 import os
 from sklearn.metrics import accuracy_score
 import pandas as pd
 import sys
 
-#file_path = '/Users/esteban/data/autopsy/data.csv'
+file_path = '/home/ubuntu/data/autopsy/data.csv'
 
-print(sys.argv[1])
+#print(sys.argv[1])
 
-file_path = sys.argv[1]
+#file_path = sys.argv[1]
 
 data = pd.read_csv(file_path,
                           header=None, encoding='ISO-8859-1',
@@ -30,10 +32,10 @@ print(Y)
 print(data['label'].values)
 
 kfold_splits = 5
-kf = KFold(n_splits=kfold_splits, shuffle=True)
+kf = StratifiedKFold(n_splits=kfold_splits, shuffle=True, random_state=42)
 
 history = []
-for index, (train_indices, test_indices) in enumerate(kf.split(X)):
+for index, (train_indices, test_indices) in enumerate(kf.split(data['text'],data['label'])):
   xtrain, xtest = X[train_indices], X[test_indices]
   ytrain, ytest = Y[train_indices], Y[test_indices]
 
