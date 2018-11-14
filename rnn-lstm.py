@@ -4,6 +4,8 @@ from tensorflow.python.keras.layers import Input, LSTM, Bidirectional, Dense, Em
 from keras import optimizers
 import sys
 
+from sklearn.model_selection import StratifiedKFold
+
 import pandas as pd
 import re
 from keras.preprocessing.text import Tokenizer
@@ -15,9 +17,9 @@ from keras.utils.np_utils import to_categorical
 from sklearn.model_selection import KFold
 import os
 
-#file_path = '/Users/esteban/data/autopsy/data.csv'
+file_path = '/home/ubuntu/data/autopsy/data.csv'
 
-file_path = sys.argv[1]
+#file_path = sys.argv[1]
 
 data = pd.read_csv(file_path,
                           header=None, encoding='ISO-8859-1',
@@ -65,7 +67,7 @@ eval_history_list = []
 kfold_splits = 5
 kf = KFold(n_splits=kfold_splits, shuffle=True)
 
-for index, (train_indices, val_indices) in enumerate(kf.split(X)):
+for index, (train_indices, val_indices) in enumerate(kf.split(data['text'],data['label'])):
   xtrain, xval = X[train_indices], X[val_indices]
   ytrain, yval = Y[train_indices], Y[val_indices]
   
