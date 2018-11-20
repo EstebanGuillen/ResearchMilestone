@@ -11,7 +11,7 @@ epochs=12
 drop_mult=0.5
 
 
-data_lm = TextLMDataBunch.from_csv(path_lm,'data_suicide_homicide_k_1.csv', classes=['Suicide','Homicide'])
+data_lm = TextLMDataBunch.from_csv(path_lm,'data_suicide_homicide_combined_train_test.csv', classes=['Suicide','Homicide'])
 
 
 learn = language_model_learner(data_lm, drop_mult=drop_mult, pretrained_model=URLs.WT103)

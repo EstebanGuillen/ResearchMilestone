@@ -5,7 +5,7 @@ from pathlib import Path
 path_lm = Path('/home/ubuntu/data/autopsy')
 
 
-data_lm = TextLMDataBunch.from_csv(path_lm,'data_suicide_homicide_k_1.csv', classes=['Suicide','Homicide'])
+data_lm = TextLMDataBunch.from_csv(path_lm,'data_suicide_homicide_combined_train_test.csv', classes=['Suicide','Homicide'])
 
 
 learn = language_model_learner(data_lm, pretrained_model=URLs.WT103)
