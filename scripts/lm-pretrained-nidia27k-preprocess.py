@@ -14,9 +14,12 @@ data_lm = TextLMDataBunch.from_csv(path_lm,'documents-preprocess-valid.csv', cla
 
 learn = language_model_learner(data_lm, drop_mult=drop_mult, pretrained_model=URLs.WT103)
 
+learn.freeze()
+learn.fit(4, slice(1e-4,1e-2))
+
 learn.unfreeze()
 learn.fit(epochs, slice(1e-4,1e-2))
 
-learn.save_encoder('enc_nidia_pretrained')
+learn.save_encoder('enc_nidia_pretrained_grad')
 
 
