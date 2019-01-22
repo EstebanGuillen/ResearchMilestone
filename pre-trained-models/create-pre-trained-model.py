@@ -19,14 +19,14 @@ gpu_id = int(sys.argv[6])
 
 
 
-print('STARTING:',num_layers,embedding_size,num_hidden_units,architecture,path,gpu_id)
+print('STARTING:',num_layers,embedding_size,num_hidden_units,architecture,path_to_data,gpu_id)
 
 
-
-torch.cuda.set_device(gpu_id)
 
 from fastai.text import * 
 from fastai import *
+
+torch.cuda.set_device(gpu_id)
 
 path = Path(path_to_data)
 
@@ -86,6 +86,6 @@ save_name = architecture +  '_' + str(num_layers)
 
 learn.save(save_name)
 
-print('DONE:',num_layers,embedding_size,num_hidden_units,architecture,path,gpu_id)
+print('DONE:',num_layers,embedding_size,num_hidden_units,architecture,path_to_data,gpu_id)
 
 
