@@ -77,6 +77,7 @@ data = TextLMDataBunch.load(path, bs=80)
 
 use_qrnn = False
 if architecture == 'qrnn':
+    print('Using QRNN')
     use_qrnn = True
 
 learn = language_model_learner(data, drop_mult=0.5, emb_sz=embedding_size, nh=num_hidden_units, nl=num_layers, qrnn=use_qrnn, clip=0.12)
