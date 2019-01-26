@@ -17,7 +17,7 @@ path_to_data = str(sys.argv[5])
 
 gpu_id = int(sys.argv[6])
 
-
+epochs = 20
 
 print('STARTING:',num_layers,embedding_size,num_hidden_units,architecture,path_to_data,gpu_id)
 
@@ -81,7 +81,7 @@ if architecture == 'qrnn':
     use_qrnn = True
 
 learn = language_model_learner(data, drop_mult=0.5, emb_sz=embedding_size, nh=num_hidden_units, nl=num_layers, qrnn=use_qrnn, clip=0.12)
-learn.fit_one_cycle(1,5e-3, moms=(0.8,0.7))
+learn.fit_one_cycle(epochs,5e-3, moms=(0.8,0.7))
 
 save_name = architecture +  '_' + str(num_layers)
 
