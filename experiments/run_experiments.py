@@ -1,48 +1,34 @@
 from fastai.text import *
 from pathlib import Path
 import pandas as pd
-
 import os
 import time
-
+import timeit
 
 #usage: python run_experiments.py <num_layers> <embedding_size> <num_hidden> <architecture> <path-to-data> <data-set> <gpu-id> <epochs> <path-to-weights> <path-to-vocab> 
 
 num_layers = int(sys.argv[1])
-
 embedding_size = int(sys.argv[2])
-
 num_hidden_units = int(sys.argv[3])
-
 architecture = str(sys.argv[4])
-
 path_to_data = str(sys.argv[5])
-
 data_set = str(sys.argv[6])
-
 gpu_id = int(sys.argv[7])
-
 epochs = int(sys.argv[8])
-
 path_to_weights = str(sys.argv[9])
-
 path_to_vocab = str(sys.argv[10])
-
 torch.cuda.set_device(gpu_id)
 
 
-
-#learning_rates_with_pre = [slice(1e-5,1e-3),slice(1e-4,1e-2)]
-#learning_rates_without_pre = [3e-4,3e-3]
-learning_rates = [3e-4,3e-3]
-mom_values = [(.95,.85),(.8,.7)]
+learning_rates = [slice(3e-4,3e-3),slice(1e-3,1e-2)]
 drop_out_values = [0.2, 0.5, 0.8]
+
+#TODO if there is time add mom values to the hyperparameter search
+mom_values = [(.95,.85),(.8,.7)]
+
 batch_size=32
-
 num_folds = 5
-
 folds_s_h = ['data_suicide_homicide_k_1.csv','data_suicide_homicide_k_2.csv','data_suicide_homicide_k_3.csv','data_suicide_homicide_k_4.csv','data_suicide_homicide_k_5.csv']
-
 folds_s_h_a = ['data_suicide_homicide_accident_k_1.csv','data_suicide_homicide_accident_k_2.csv','data_suicide_homicide_accident_k_3.csv','data_suicide_homicide_accident_k_4.csv','data_suicide_homicide_accident_k_5.csv']
 
 folds = []
@@ -59,7 +45,7 @@ if architecture == 'qrnn':
     using_qrnn = True
 
 using_pre_trained = False
-if path_to_weights != 'NA' and path_to_weights != 'NA':
+if path_to_weights != 'NA' and path_to_vocab != 'NA':
     using_pre_trained = True
 
 path = Path(path_to_data)
@@ -77,7 +63,7 @@ if using_pre_trained:
 
     learn.freeze()
 
-
+    #do some gradual unfreezing, so we don't lose the pretrained info
     learn.fit_one_cycle(2, 1e-2, moms=(0.8,0.7))
 
     learn.freeze_to(-2)
@@ -89,32 +75,27 @@ if using_pre_trained:
     learn.unfreeze()
     learn.fit_one_cycle(8, 1e-3, moms=(0.8,0.7))
 else:
-    #no pretrained model
+    #no pretrained model, so we just unfreeze it
     learn.unfreeze()
-    #learn.fit_one_cycle(8, 1e-2, moms=(0.8,0.7))
-
-
-
+    
 #name of the encoder
 pre_trained_string = ''
-if using_pre_pretrained:
+if using_pre_trained:
     pre_trained_string = 'pre_trained'
-else
+else:
     pre_trained_string = 'not_pre_trained'
 
 lm_encoder_name =  architecture + '_' + str(num_layers) + '_' + data_set + '_' + pre_trained_string
 
 learn.save_encoder(lm_encoder_name)
 
+start = timeit.default_timer()
 
-
-
-count = 0
 for lr in learning_rates:
     for drop in drop_out_values:
         print('')
         print('STARTING CROSS VAL:',architecture,str(num_layers),data_set,lr, str(drop) )
-        fold_id = 0 
+        fold_id = 1 
         for fold in folds:
             print(fold)
             data_clas = TextClasDataBunch.from_csv(path, fold, vocab=data_lm.train_ds.vocab, classes=classes, bs=batch_size)
@@ -143,13 +124,35 @@ for lr in learning_rates:
             #TODO save all results of each fold into a file
             
             
-            classifier_name = architecture + '_' + str(num_layers) + '_' + str(lr) + '_' + str(drop) + '_" + pre_trained_string + '_" + str(fold_id)
-            learn.save(classifier_name)
-
+            run_name = architecture + '_layers_' + str(num_layers) + '_max_lr_' + str(lr.stop) + '_drop_' + str(drop) + '_fold_' + str(fold_id) + '_' + pre_trained_string
             
+            #classifier_name = run_name + 'classifier'
+            #will save in the path_to_data directory
+            #learn.save(classifier_name)
 
-          
+            run_dir = path_to_data + 'runs/'
+            #save training loss
+            np.save(run_dir + run_name +'_training_loss',learn.recorder.losses)
+            #save validation loss
+            np.save(run_dir + run_name +'_validation_loss',learn.recorder.val_losses)
+            #save validation accuracy
+            np.save(run_dir + run_name +'_validation_accuracy',learn.recorder.metrics)
+            #save validation final predictions 
+            np.save(run_dir + run_name +'_validation_final_predictions',learn.get_preds()[0])
+            #save validation true values
+            np.save(run_dir + run_name +'_validation_true_values',learn.get_preds()[1])
+            #save max learning rate schedule
+            np.save(run_dir + run_name +'_max_learning_rate_schedule',learn.recorder.lrs)
+            #save moms schedule
+            np.save(run_dir + run_name +'_moms_schedule',learn.recorder.moms)
+            #save learning rate range
+            np.save(run_dir + run_name +'_learning_rate_range',learn.lr_range(lr))
+            #save number of batches
+            np.save(run_dir + run_name +'_num_batches',learn.recorder.nb_batches)
             fold_id = fold_id + 1
         print('ENDING CROSS VAL:',architecture,str(num_layers),data_set,lr, str(drop) )
         print('')
 
+stop = timeit.default_timer()
+
+print('Time for full CROSS VAL run: ', stop - start) 
