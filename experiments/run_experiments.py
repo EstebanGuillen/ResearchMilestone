@@ -32,9 +32,10 @@ torch.cuda.set_device(gpu_id)
 
 
 
-learning_rates_with_pre = [slice(1e-5,1e-3),slice(1e-4,1e-2)]
-learning_rates_without_pre = [5e-4,5e-3]
-learning_rates = []
+#learning_rates_with_pre = [slice(1e-5,1e-3),slice(1e-4,1e-2)]
+#learning_rates_without_pre = [3e-4,3e-3]
+learning_rates = [3e-4,3e-3]
+mom_values = [(.95,.85),(.8,.7)]
 drop_out_values = [0.2, 0.5, 0.8]
 batch_size=32
 
@@ -67,7 +68,8 @@ data_lm = TextLMDataBunch.from_csv(path, 'data.csv', classes=classes, bs=batch_s
 learn = language_model_learner(data_lm, qrnn=using_qrnn, emb_sz=embedding_size, nh=num_hidden_units, nl=num_layers)
 
 if using_pre_trained:
-    #no pretrained model
+    #pretrained model
+    print('Using pre-trained model')
     weights = path_to_weights
     vocab = path_to_vocab 
 
@@ -85,34 +87,34 @@ if using_pre_trained:
     learn.fit_one_cycle(1, slice(5e-3/(2.6**4),5e-3), moms=(0.8,0.7))
 
     learn.unfreeze()
-    learn.fit_one_cycle(10, 1e-3, moms=(0.8,0.7))
+    learn.fit_one_cycle(8, 1e-3, moms=(0.8,0.7))
 else:
     #no pretrained model
     learn.unfreeze()
-    learn.fit_one_cycle(10, 1e-2, moms=(0.8,0.7))
+    #learn.fit_one_cycle(8, 1e-2, moms=(0.8,0.7))
 
 
 
 #name of the encoder
+pre_trained_string = ''
+if using_pre_pretrained:
+    pre_trained_string = 'pre_trained'
+else
+    pre_trained_string = 'not_pre_trained'
 
-lm_encoder_name = 'encoder' + '_' + architecture + '_' + str(num_layers) + '_' + data_set
+lm_encoder_name =  architecture + '_' + str(num_layers) + '_' + data_set + '_' + pre_trained_string
 
 learn.save_encoder(lm_encoder_name)
 
 
 
 
-#loop over hyperparams and folds
-if using_pre_trained:
-    learning_rates = learning_rates_with_pre
-else:
-    learning_rates = learning_rates_without_pre
-
 count = 0
 for lr in learning_rates:
     for drop in drop_out_values:
         print('')
         print('STARTING CROSS VAL:',architecture,str(num_layers),data_set,lr, str(drop) )
+        fold_id = 0 
         for fold in folds:
             print(fold)
             data_clas = TextClasDataBunch.from_csv(path, fold, vocab=data_lm.train_ds.vocab, classes=classes, bs=batch_size)
@@ -121,17 +123,18 @@ for lr in learning_rates:
 
 
             learn.load_encoder(lm_encoder_name)
+            
+            if using_pre_trained:
+                learn.freeze()
 
-            learn.freeze()
+                learn.fit_one_cycle(1, 2e-2, moms=(0.8,0.7))
 
-            learn.fit_one_cycle(1, 2e-2, moms=(0.8,0.7))
-
-            learn.freeze_to(-2)
-            learn.fit_one_cycle(1, slice(1e-2/(2.6**4),1e-2), moms=(0.8,0.7))
+                learn.freeze_to(-2)
+                learn.fit_one_cycle(1, slice(1e-2/(2.6**4),1e-2), moms=(0.8,0.7))
 
 
-            learn.freeze_to(-3)
-            learn.fit_one_cycle(1, slice(5e-3/(2.6**4),5e-3), moms=(0.8,0.7))
+                learn.freeze_to(-3)
+                learn.fit_one_cycle(1, slice(5e-3/(2.6**4),5e-3), moms=(0.8,0.7))
 
 
             learn.unfreeze()
@@ -140,9 +143,13 @@ for lr in learning_rates:
             #TODO save all results of each fold into a file
             
             
-            classifier_name = architecture + '_' + str(num_layers) + '_' + str(count)
+            classifier_name = architecture + '_' + str(num_layers) + '_' + str(lr) + '_' + str(drop) + '_" + pre_trained_string + '_" + str(fold_id)
             learn.save(classifier_name)
-            count = count + 1
+
+            
+
+          
+            fold_id = fold_id + 1
         print('ENDING CROSS VAL:',architecture,str(num_layers),data_set,lr, str(drop) )
         print('')
 
