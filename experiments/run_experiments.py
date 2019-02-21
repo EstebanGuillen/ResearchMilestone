@@ -30,19 +30,31 @@ batch_size=32
 num_folds = 5
 folds_s_h = ['data_suicide_homicide_k_1.csv','data_suicide_homicide_k_2.csv','data_suicide_homicide_k_3.csv','data_suicide_homicide_k_4.csv','data_suicide_homicide_k_5.csv']
 folds_s_h_a = ['data_suicide_homicide_accident_k_1.csv','data_suicide_homicide_accident_k_2.csv','data_suicide_homicide_accident_k_3.csv','data_suicide_homicide_accident_k_4.csv','data_suicide_homicide_accident_k_5.csv']
+folds_s_h_a_n = ['data_suicide_homicide_accident_natural_k_1.csv','data_suicide_homicide_accident_natural_k_2.csv','data_suicide_homicide_accident_natural_k_3.csv','data_suicide_homicide_accident_natural_k_4.csv','data_suicide_homicide_accident_natural_k_5.csv']
+
+
 
 folds = []
 classes = []
 if data_set == 's_h':
     folds = folds_s_h
     classes = ['Suicide','Homicide']
-else:   
+elif data_set == 's_h_a':   
     folds = folds_s_h_a
     classes = ['Suicide','Homicide','Accident']
+else:
+    folds = folds_s_h_a_n
+    classes = ['Suicide','Homicide','Accident','Natural'] 
 
-using_qrnn = False
+
+
+
+
+
+using_qrnn= False
 if architecture == 'qrnn':
     using_qrnn = True
+
 
 using_pre_trained = False
 if path_to_weights != 'NA' and path_to_vocab != 'NA':
