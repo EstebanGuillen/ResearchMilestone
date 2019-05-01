@@ -1,3 +1,5 @@
+print('RUNNING WRONG SCRIPT USE _V2')
+'''
 from fastai.text import *
 from pathlib import Path
 import pandas as pd
@@ -167,4 +169,5 @@ for lr in learning_rates:
 
 stop = timeit.default_timer()
 
-print('Time for full CROSS VAL run: ', stop - start) 
+print('Time for full CROSS VAL run: ', stop - start)
+''' 
